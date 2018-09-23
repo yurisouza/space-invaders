@@ -10,5 +10,13 @@ namespace SpaceInvaders.YuriSouza.Entities
     {
         public int Id { get; set; }
         public bool CanShoot { get; set; }
+        public bool IsLive { get; set; }
+
+        public Inimigo(int id)
+        {
+            Id = id;
+            CanShoot = true;
+            IsLive = true;
+        }
     }
 }
