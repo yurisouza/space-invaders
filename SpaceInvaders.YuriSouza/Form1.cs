@@ -1,4 +1,5 @@
 ﻿using SpaceInvaders.YuriSouza.Entities;
+using SpaceInvaders.YuriSouza.Utility;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,6 +7,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,132 +15,139 @@ namespace SpaceInvaders.YuriSouza
 {
     public partial class Form1 : Form
     {
-        private bool goLeft, goRight, isPressed, goLeftInvader, goRightInvader = true, canShoot = true;
-        private int invaderSpeed = 5, score = 0, totalEnemies = 15, playerSpeed = 5, invaderToMove = 15, totalShoot = 0;
-        private int[] invadersLive;
-        private Inimigo[] inimigos;
+        private bool goLeft, goRight, isPressed, goLeftInvader, goRightInvader = true;
+        private int invaderSpeed = 7, score = 0, totalEnemies = 0, playerSpeed = 5, invaderToMove = 14, totalShoot = 0;
+        private Enemy[] enemies;
         private Random random;
+        private AirShip airShip;
 
         public Form1()
         {
             random = new Random();
-            inimigos = new Inimigo[15];
-            InitializeInimigos();
-            invadersLive = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
             InitializeComponent();
         }
 
-        private void InitializeInimigos()
+        private void InitializeInimigos(int baseStart)
         {
-            for(int i=0; i < totalEnemies; i++)
+            enemies = new Enemy[Variables.TotalEnemies];
+            totalEnemies = 0;
+
+            var left = 78;
+            for (int coluna = 0; coluna < 7; coluna++)
             {
-                inimigos[i] = new Inimigo(i);
+                left += 42;
+                var top = baseStart < 150 ? 150 : baseStart;
+                for (int line = 0; line < 4; line++)
+                {
+                    top -= 35;
+
+                    var inimigo = ScreenFactory.NewEnemy(totalEnemies.ToString(), left, top);
+                    enemies[inimigo.Id] = inimigo;
+
+                    this.Controls.Add(inimigo.ElementScreen());
+                    totalEnemies++;
+                }
             }
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            makeShield();
+            InitializeInimigos(150);
+            MakeWalls();
+            airShip = new AirShip(new ElementControl(player, DirectionEnum.STOP));
         }
 
         private void keyisdown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Left)
-                goLeft = true;
+                airShip.ChangeDirection(DirectionEnum.LEFT);
 
             if (e.KeyCode == Keys.Right)
-                goRight = true;
+                airShip.ChangeDirection(DirectionEnum.RIGHT);
 
-            if (e.KeyCode == Keys.Space && !isPressed)
+            if (e.KeyCode == Keys.Space && airShip.CanShoot)
             {
-                isPressed = true;
-                
-                makeBullet();
+                airShip.Shoot(Controls);
             }
         }
 
         private void keyisup(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Left)
-                goLeft = false;
-
-            if (e.KeyCode == Keys.Right)
-                goRight = false;
-
-            if (isPressed)
-                isPressed = false;
+            if (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right)
+                airShip.ChangeDirection(DirectionEnum.STOP);
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (goLeft && player.Left > 0)
-                player.Left -= playerSpeed;
+            if (airShip.CanMoveToLeft())
+                airShip.MoveToLeft();
 
-            if (goRight && player.Left < 470)
-                player.Left += playerSpeed;
+            if (airShip.CanMoveToRight())
+                airShip.MoveToRight();
 
-            foreach (Control control in Controls)
+
+            //MOVER INIMIGOS PARA DIREITA
+            for (var inimigoId = enemies.Last().Id; inimigoId >= 0; inimigoId--)
             {
-                if (control is PictureBox && control.Tag == "invader" && invaderToMove.ToString() == control.AccessibleName)
+                var inimigo = enemies[inimigoId];
+
+                if (inimigo.IsLive == false)
+                    continue;
+                else if (inimigo.CanMoveToRight())
+                    inimigo.MoveToRight();
+                else if (inimigo.GetDirection() == DirectionEnum.RIGHT)
                 {
-                    if (goLeftInvader)
-                        control.Left -= invaderSpeed;
-                    else if (goRightInvader)
-                        control.Left += invaderSpeed;
-
-                    if (invaderToMove >= 15)
-                        invaderToMove = 1;
-                    else
-                        invaderToMove++;
-
-                    if (control.Left >= 470)
+                    foreach (var i in enemies)
                     {
-                        control.Left -= invaderSpeed;
-                        goLeftInvader = true;
-                        goRightInvader = false;
-                        invaderToMove = 1;
+                        i.ChangeDirection(DirectionEnum.LEFT);
+                        i.MoveToDown();
                     }
-                    else if (control.Left < 0)
-                    {
-                        control.Left += invaderSpeed;
-                        goLeftInvader = false;
-                        goRightInvader = true;
-                        invaderToMove = 15;
-                    }
-
-                    //tiro dos fantasmas
-                    //var inimigo = inimigos[random.Next(0, 15)];
-                    //var valor = random.Next(1, 15) >= random.Next(1, 10);
-                    //if (inimigo.CanShoot && inimigo.Id.ToString() == control.AccessibleName && valor && totalShoot < 5)
-                    //{
-                    //    totalShoot++;
-                    //    inimigo.CanShoot = false;
-                    //    makeBulletInvader(control);
-                    //}
-                }
-                else if (invadersLive.Contains(invaderToMove) == false)
-                {
-                    if (invaderToMove >= 15)
-                        invaderToMove = 1;
-                    else
-                        invaderToMove++;
+                    break;
                 }
 
+                if (inimigo.IsLive == false)
+                    continue;
+                else if (inimigo.CanMoveToLeft())
+                    inimigo.MoveToLeft();
+                else if (inimigo.GetDirection() == DirectionEnum.LEFT)
+                {
+                    foreach (var i in enemies)
+                    {
+                        i.ChangeDirection(DirectionEnum.RIGHT);
+                        i.MoveToDown();
+                    }
+                    break;
+                }
             }
 
-            //TIRO DOS FANTASMAS
-            foreach (Control control in Controls)
+            ////MOVER INIMIGOS PARA ESQUERDA
+            //for (var inimigoId = enemies.First().Id; inimigoId < Variables.TotalEnemies; inimigoId++)
+            //{
+            //    var inimigo = enemies[inimigoId];
+
+            //    if (inimigo.IsLive == false)
+            //        continue;
+            //    else if (inimigo.CanMoveToLeft())
+            //        inimigo.MoveToLeft();
+            //    else if (inimigo.GetDirection() == DirectionEnum.LEFT)
+            //    {
+            //        foreach (var i in enemies)
+            //        {
+            //            i.ChangeDirection(DirectionEnum.RIGHT);
+            //            i.MoveToDown();
+            //        }
+            //        break;
+            //    }
+            //}
+
+            var enemiesLives = enemies.Where(enemy => enemy.IsLive == true);
+            foreach (var enemy in enemiesLives)
             {
-                if (control is PictureBox && control.Tag == "invader")
+                var probability = random.Next(0, 28 * (int)Math.Floor(Convert.ToDecimal((Variables.TotalEnemies - enemiesLives.Count()) / 2))) >= random.Next(1, 2800);
+                if (enemy.CanShoot && probability && totalShoot <= 3)
                 {
-                    var inimigo = inimigos[random.Next(0, 15)];
-                    var valor = random.Next(1, 15) >= random.Next(1, 10);
-                    if (inimigo.CanShoot && inimigo.Id.ToString() == control.AccessibleName && valor && totalShoot < 5)
-                    {
-                        totalShoot++;
-                        inimigo.CanShoot = false;
-                        makeBulletInvader(control);
-                    }
+                    totalShoot++;
+                    enemy.Shoot(Controls);
                 }
             }
 
@@ -171,13 +180,24 @@ namespace SpaceInvaders.YuriSouza
                     if (control.Top > 380)
                     {
                         Controls.Remove(control);
+                        //enemies[Convert.ToInt32(control.AccessibleName)].CanShoot = true;
                         totalShoot--;
-                        inimigos[Convert.ToInt32(control.AccessibleName)].CanShoot = true;
                     }
                 }
 
-                
-                foreach (Control controlInternal in Controls)
+
+                //ENEMY TOCAR NA NAVE
+                if (control is PictureBox && control.Tag.ToString() == "invader")
+                {
+                    if (control.Bounds.IntersectsWith((Rectangle)airShip.ElementScreen().Bounds))
+                    {
+                        gameOver();
+                        MessageBox.Show("You LOSER");
+                    }
+                }
+
+
+                foreach (System.Windows.Forms.Control controlInternal in Controls)
                 {
                     //COLISÃO TIRO DA NAVE COM O INIMIGO
                     if (control is PictureBox && control.Tag.ToString() == "invader")
@@ -189,9 +209,28 @@ namespace SpaceInvaders.YuriSouza
                                 score++;
                                 Controls.Remove(control);
                                 Controls.Remove(controlInternal);
-                                invadersLive = invadersLive.Where(a => a != Convert.ToInt32(control.AccessibleName)).ToArray();
+
+                                var ini = enemies[Convert.ToInt32(control.AccessibleName)];
+                                ini.IsLive = false;
+
+                                var inimigosVivos = enemies.Count(inimigo => inimigo.IsLive == true);
+
+                                if (inimigosVivos == 0)
+                                {
+                                    InitializeInimigos((int)(ini.ElementScreen().Top + 45));
+                                }
+                                else if (inimigosVivos % 9 == 0)
+                                {
+                                    foreach (var i in enemies)
+                                    {
+                                        i.IncreaseSpeed();
+                                    }
+                                }
                             }
                         }
+
+
+
                     }
 
                     if (control is PictureBox && control.Tag.ToString() == "shield")
@@ -203,10 +242,10 @@ namespace SpaceInvaders.YuriSouza
                                 Controls.Remove(control);
                                 Controls.Remove(controlInternal);
                                 totalShoot--;
-                                inimigos[Convert.ToInt32(controlInternal.AccessibleName)].CanShoot = true;
+                                //enemies[Convert.ToInt32(controlInternal.AccessibleName)].CanShoot = true;
                             }
 
-                            
+
                         }
 
                         if (controlInternal is PictureBox && controlInternal.Tag.ToString() == "bullet")
@@ -222,95 +261,27 @@ namespace SpaceInvaders.YuriSouza
 
                 label1.Text = $"Score: {score}";
 
-                if (score > totalEnemies - 1)
-                {
-                    gameOver();
-                    MessageBox.Show("You Win");
-                }
+                //if (score > totalEnemies - 1)
+                //{
+                //    gameOver();
+                //    MessageBox.Show("You Win");
+                //}
             }
         }
 
-        private void makeBulletInvader()
+
+
+        private void MakeWalls()
         {
-            PictureBox bullet = new PictureBox()
+            var intervalBetweenWalls = 0;
+            for (int wallId = 1; wallId <= Variables.TotalWalls; wallId++)
             {
-                Image = Properties.Resources.bullet,
-                Size = new Size(5, 20),
-                Tag = "new",
-                Left = 351,
-                Top = 20
-            };
-
-            this.Controls.Add(bullet);
-            bullet.BringToFront();
-        }
-
-        private void makeBulletInvader(Control control)
-        {
-            PictureBox bullet = new PictureBox()
-            {
-                Image = Properties.Resources.bullet,
-                Size = new Size(5, 20),
-                Tag = "invaderBullet",
-                Left = control.Left + control.Width / 2,
-                Top = control.Top + 20,
-                AccessibleName = control.AccessibleName
-            };
-
-            this.Controls.Add(bullet);
-            bullet.BringToFront();
-        }
-
-        private void makeBullet()
-        {
-            PictureBox bullet = new PictureBox()
-            {
-                Image = Properties.Resources.bullet,
-                Size = new Size(5, 20),
-                Tag = "bullet",
-                Left = player.Left + player.Width / 2,
-                Top = player.Top - 20
-            };
-
-            this.Controls.Add(bullet);
-            bullet.BringToFront();
-        }
-
-        private void makeShield()
-        {
-            var space = 0;
-            for(int shields = 1; shields <= 4; shields++)
-            {
-                for (int shieldCollumn = 0; shieldCollumn < 10; shieldCollumn++)
+                var wall = ScreenFactory.NewWall((39 * wallId) + intervalBetweenWalls, 288);
+                foreach(var shield in wall.Shields)
                 {
-                    PictureBox bullet = new PictureBox()
-                    {
-                        Image = Properties.Resources.shield,
-                        Size = new Size(6, 8),
-                        Tag = "shield",
-                        Left = (shields*45) + space + (shieldCollumn*6),
-                        Top = 280
-                    };
-
-                    this.Controls.Add(bullet);
-                    bullet.BringToFront();
-
-                    for (int shieldLine = 1; shieldLine <= 4; shieldLine++)
-                    {
-                        PictureBox bullet1 = new PictureBox()
-                        {
-                            Image = Properties.Resources.shield,
-                            Size = new Size(6, 8),
-                            Tag = "shield",
-                            Left = (shields * 45) + space + (shieldCollumn * 6),
-                            Top = 280 - (shieldLine * 8)
-                        };
-
-                        this.Controls.Add(bullet1);
-                        bullet1.BringToFront();
-                    }
+                    Controls.Add(shield.ElementScreen());
                 }
-                space += 70;
+                intervalBetweenWalls += 70;
             }
         }
 
