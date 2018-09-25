@@ -18,10 +18,10 @@ namespace SpaceInvaders.YuriSouza
     {
         private bool goLeft, goRight, isPressed, goLeftInvader, goRightInvader = true;
         private int invaderSpeed = 7, totalEnemies = 0, playerSpeed = 5, invaderToMove = 14, totalShoot = 0;
-        private Enemy[] enemies;
-        private Wall[] walls;
+        //private Enemy[] enemies;
+        //private Wall[] walls;
         private Random random;
-        private AirShip airShip;
+        //private AirShip airShip;
         private Gamer gamer;
         private IRepository repository;
 
@@ -80,117 +80,119 @@ namespace SpaceInvaders.YuriSouza
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (airShip.CanMoveToLeft())
-                airShip.MoveToLeft();
+            gamer.GamerManager();
+            //if (airShip.CanMoveToLeft())
+            //    airShip.MoveToLeft();
 
-            if (airShip.CanMoveToRight())
-                airShip.MoveToRight();
+            //if (airShip.CanMoveToRight())
+            //    airShip.MoveToRight();
 
 
             //MOVER INIMIGOS PARA DIREITA
-            for (var inimigoId = enemies.Last().Id; inimigoId >= 0; inimigoId--)
-            {
-                var inimigo = enemies[inimigoId];
+            //for (var inimigoId = enemies.Last().Id; inimigoId >= 0; inimigoId--)
+            //{
+            //    var inimigo = enemies[inimigoId];
 
-                if (inimigo.IsLive == false)
-                    continue;
-                else if (inimigo.CanMoveToRight())
-                    inimigo.MoveToRight();
-                else if (inimigo.GetDirection() == DirectionEnum.RIGHT)
-                {
-                    foreach (var i in enemies)
-                    {
-                        i.ChangeDirection(DirectionEnum.LEFT);
-                        i.MoveToDown();
-                    }
-                    break;
-                }
-            }
+            //    if (inimigo.IsLive == false)
+            //        continue;
+            //    else if (inimigo.CanMoveToRight())
+            //        inimigo.MoveToRight();
+            //    else if (inimigo.GetDirection() == DirectionEnum.RIGHT)
+            //    {
+            //        foreach (var i in enemies)
+            //        {
+            //            i.ChangeDirection(DirectionEnum.LEFT);
+            //            i.MoveToDown();
+            //        }
+            //        break;
+            //    }
+            //}
 
             //MOVER INIMIGOS PARA ESQUERDA
-            for (var inimigoId = enemies.First().Id; inimigoId < Variables.TotalEnemies; inimigoId++)
-            {
-                var inimigo = enemies[inimigoId];
+            //for (var inimigoId = enemies.First().Id; inimigoId < Variables.TotalEnemies; inimigoId++)
+            //{
+            //    var inimigo = enemies[inimigoId];
 
-                if (inimigo.IsLive == false)
-                    continue;
-                else if (inimigo.CanMoveToLeft())
-                    inimigo.MoveToLeft();
-                else if (inimigo.GetDirection() == DirectionEnum.LEFT)
-                {
-                    foreach (var i in enemies)
-                    {
-                        i.ChangeDirection(DirectionEnum.RIGHT);
-                        i.MoveToDown();
-                    }
-                    break;
-                }
-            }
+            //    if (inimigo.IsLive == false)
+            //        continue;
+            //    else if (inimigo.CanMoveToLeft())
+            //        inimigo.MoveToLeft();
+            //    else if (inimigo.GetDirection() == DirectionEnum.LEFT)
+            //    {
+            //        foreach (var i in enemies)
+            //        {
+            //            i.ChangeDirection(DirectionEnum.RIGHT);
+            //            i.MoveToDown();
+            //        }
+            //        break;
+            //    }
+            //}
 
             //TIRO INIMIGOS
-            var enemiesLives = enemies.Where(enemy => enemy.IsLive == true);
-            foreach (var enemy in enemiesLives)
-            {
-                var probability = random.Next(0, 28 * (int)Math.Floor(Convert.ToDecimal((Variables.TotalEnemies - enemiesLives.Count()) / 2))) >= random.Next(1, 2800);
-                if (enemy.CanShoot && probability && totalShoot <= 3)
-                {
-                    totalShoot++;
-                    enemy.Shoot(Controls);
-                }
-            }
+            //var enemiesLives = gamer.Enemies.Where(enemy => enemy.IsLive == true);
+            //foreach (var enemy in enemiesLives)
+            //{
+            //    var totalEnemies = Variables.EnemiesPerLine * Variables.EnemiesPerCollumn;
+            //    var probability = random.Next(0, 28 * (int)Math.Floor(Convert.ToDecimal((totalEnemies - enemiesLives.Count()) / 2))) >= random.Next(1, 2800);
+            //    if (enemy.CanShoot && probability && totalShoot <= 3)
+            //    {
+            //        totalShoot++;
+            //        enemy.Shoot(Controls);
+            //    }
+            //}
 
             foreach (Control control in Controls)
             {
 
                 //movimento tiro da nave
-                if (control is PictureBox && control.Tag == "bullet")
-                {
-                    control.Top -= 6;
+                //if (control is PictureBox && control.Tag == Variables.ShootNameAirShip)
+                //{
+                //    control.Top -= 6;
 
-                    if (control.Top < Height - 490)
-                    {
-                        Controls.Remove(control);
-                    }
-                }
+                //    if (control.Top < Height - 490)
+                //    {
+                //        Controls.Remove(control);
+                //    }
+                //}
 
                 //movimento tiro dos fantasmas
-                if (control is PictureBox && control.Tag == "invaderBullet")
-                {
-                    if (control.Bounds.IntersectsWith(player.Bounds))
-                    {
-                        Controls.Remove(control);
-                        gameOver();
-                        MessageBox.Show("You LOSE");
-                    }
+                //if (control is PictureBox && control.Tag == Variables.ShootNameEnemy)
+                //{
+                //    if (control.Bounds.IntersectsWith(player.Bounds))
+                //    {
+                //        Controls.Remove(control);
+                //        gameOver();
+                //        MessageBox.Show("You LOSE");
+                //    }
 
-                    control.Top += 3;
+                //    control.Top += 3;
 
-                    if (control.Top > 380)
-                    {
-                        Controls.Remove(control);
-                        //enemies[Convert.ToInt32(control.AccessibleName)].CanShoot = true;
-                        totalShoot--;
-                    }
-                }
+                //    if (control.Top > 380)
+                //    {
+                //        Controls.Remove(control);
+                //        //enemies[Convert.ToInt32(control.AccessibleName)].CanShoot = true;
+                //        totalShoot--;
+                //    }
+                //}
 
 
-                //ENEMY TOCAR NA NAVE
-                if (control is PictureBox && control.Tag.ToString() == "invader")
-                {
-                    if (control.Bounds.IntersectsWith((Rectangle)airShip.ElementScreen().Bounds))
-                    {
-                        gameOver();
-                        MessageBox.Show("You LOSER");
-                    }
-                }
+                ////ENEMY TOCAR NA NAVE
+                //if (control is PictureBox && control.Tag.ToString() == "invader")
+                //{
+                //    if (control.Bounds.IntersectsWith((Rectangle)gamer.AirShip.ElementScreen().Bounds))
+                //    {
+                //        gameOver();
+                //        MessageBox.Show("You LOSER");
+                //    }
+                //}
 
 
                 foreach (System.Windows.Forms.Control controlInternal in Controls)
                 {
                     //COLISÃO TIRO DA NAVE COM O INIMIGO
-                    if (control is PictureBox && control.Tag.ToString() == "invader")
+                    if (control is PictureBox && control.Tag.ToString() == Variables.EnemyName)
                     {
-                        if (controlInternal is PictureBox && controlInternal.Tag.ToString() == "bullet")
+                        if (controlInternal is PictureBox && controlInternal.Tag.ToString() == Variables.ShootNameAirShip)
                         {
                             if (control.Bounds.IntersectsWith(controlInternal.Bounds))
                             {
@@ -198,24 +200,24 @@ namespace SpaceInvaders.YuriSouza
                                 Controls.Remove(control);
                                 Controls.Remove(controlInternal);
 
-                                var ini = enemies[Convert.ToInt32(control.AccessibleName)];
+                                var ini = gamer.Enemies[Convert.ToInt32(control.AccessibleName)];
                                 ini.IsLive = false;
 
-                                var inimigosVivos = enemies.Count(inimigo => inimigo.IsLive == true);
+                                var inimigosVivos = gamer.Enemies.Count(inimigo => inimigo.IsLive == true);
 
                                 if (inimigosVivos == 0)
                                 {
-                                    InitializeInimigos((int)(ini.ElementScreen().Top + 45));
+                                    gamer.NextLevelEnemy((int)(ini.ElementScreen().Top + 45));
                                 }
                                 else if (inimigosVivos % 9 == 0)
                                 {
-                                    foreach (var i in enemies)
+                                    foreach (var i in gamer.Enemies)
                                     {
                                         i.IncreaseSpeed();
                                     }
                                 }
 
-                                repository.Insert(gamer);
+                                //repository.Insert(gamer);
                             }
                         }
 
@@ -223,9 +225,9 @@ namespace SpaceInvaders.YuriSouza
 
                     }
 
-                    if (control is PictureBox && control.Tag.ToString() == "shield")
+                    if (control is PictureBox && control.Tag.ToString() == Variables.ShieldName)
                     {
-                        if (controlInternal is PictureBox && controlInternal.Tag.ToString() == "invaderBullet")
+                        if (controlInternal is PictureBox && controlInternal.Tag.ToString() == Variables.ShootNameEnemy)
                         {
                             if (control.Bounds.IntersectsWith(controlInternal.Bounds))
                             {
@@ -238,12 +240,12 @@ namespace SpaceInvaders.YuriSouza
 
                         }
 
-                        if (controlInternal is PictureBox && controlInternal.Tag.ToString() == "bullet")
+                        if (controlInternal is PictureBox && controlInternal.Tag.ToString() == Variables.ShootNameAirShip)
                         {
                             if (control.Bounds.IntersectsWith(controlInternal.Bounds))
                             {
                                 var ids = control.AccessibleName.Split('/');
-                                walls[Convert.ToInt32(ids[0])].Shield(ids[1]).IsLive = false;
+                                gamer.Walls[Convert.ToInt32(ids[0])].Shield(ids[1]).IsLive = false;
                                 Controls.Remove(control);
                                 Controls.Remove(controlInternal);
                             }

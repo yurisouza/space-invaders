@@ -15,26 +15,23 @@ namespace SpaceInvaders.YuriSouza.Entities
         private Control _player;
         private Timer _timer;
         private ControlCollection _controls;
+        private Random _random;
+        private int _totalShots = 0;
 
         public int Score { get; set; }
         public AirShip AirShip { get; set; }
         public List<Wall> Walls { get; set; }
         public List<Enemy> Enemies { get; set; }
 
-        //public Gamer(ControlCollection controls, AirShip airShip, List<Wall> walls, List<Enemy> enemies)
-        //{
-        //    _controls = controls;
-        //    AirShip = airShip;
-        //    Walls = walls;
-        //    Enemies = enemies;
-        //}
-
         public Gamer(ControlCollection controls, Control player, Timer timer)
         {
             _controls = controls;
             _player = player;
+            _timer = timer;
+            _random = new Random();
             Walls = new List<Wall>(Variables.TotalWalls);
             Enemies = new List<Enemy>(Variables.EnemiesPerLine * Variables.EnemiesPerCollumn);
+            LoadGamer();
         }
 
         private void LoadGamer()
@@ -88,6 +85,7 @@ namespace SpaceInvaders.YuriSouza.Entities
                     _controls.Add(shield.ElementScreen());
                 }
 
+                Walls.Add(wall);
                 intervalBetweenWalls += 70;
             }
         }
@@ -133,10 +131,10 @@ namespace SpaceInvaders.YuriSouza.Entities
 
         private void EventRestart(object sender, KeyEventArgs e)
         {
-            _timer.Stop();
-            //Restart(repository.Get());
-            _timer.Interval = 500;
-            _timer.Start();
+            //_timer.Stop();
+            ////Restart(repository.Get());
+            //_timer.Interval = 500;
+            //_timer.Start();
         }
 
         public void Restart(Gamer newGamer)
@@ -170,6 +168,156 @@ namespace SpaceInvaders.YuriSouza.Entities
             });
         }
 
+        public void GamerManager()
+        {
+            MoveAirShip();
+            MoveEnemies();
+            EnemiesShots();
+
+            foreach(Control control in _controls)
+            {
+                MoveShotOfAirShip(control);
+                MoveShotOfEnemy(control);
+                VerifyColisionShotsAirShipWithEnemies(control);
+            }
+        }
+
+        private void MoveAirShip()
+        {
+            if (AirShip.CanMoveToLeft())
+                AirShip.MoveToLeft();
+
+            if (AirShip.CanMoveToRight())
+                AirShip.MoveToRight();
+        }
+
+        private void MoveEnemies()
+        {
+            MoveEnemyToRight();
+            MoveEnemyToLeft();
+        }
+
+        private void MoveEnemyToRight()
+        {
+            for (var enemyId = Enemies.Last().Id; enemyId >= 0; enemyId--)
+            {
+                var enemy = Enemies[enemyId];
+
+                if (enemy.IsLive == false)
+                    continue;
+                else if (enemy.CanMoveToRight())
+                {
+                    enemy.MoveToRight();
+                    VerifyColisionWithAirShip(enemy.ElementScreen());
+                }
+                else if (enemy.GetDirection() == DirectionEnum.RIGHT)
+                {
+                    foreach (var i in Enemies)
+                    {
+                        i.ChangeDirection(DirectionEnum.LEFT);
+                        i.MoveToDown();
+                    }
+                    break;
+                }
+            }
+        }
+
+        private void EnemiesShots()
+        {
+            var enemiesLives = Enemies.Where(enemy => enemy.IsLive == true);
+            foreach (var enemy in enemiesLives)
+            {
+                var totalEnemies = Variables.EnemiesPerLine * Variables.EnemiesPerCollumn;
+                var indexMultiply = (int) Math.Floor(Convert.ToDecimal((totalEnemies - enemiesLives.Count()) / 2));
+                var probability = _random.Next(0, 28 * indexMultiply) >= _random.Next(1, 2800);
+                if (enemy.CanShoot && probability && _totalShots < Variables.ShotsEnemiesInScreen)
+                {
+                    _totalShots++;
+                    enemy.Shoot(_controls);
+                }
+            }
+        }
+
+        private void MoveEnemyToLeft()
+        {
+            var totalEnemies = Variables.EnemiesPerCollumn * Variables.EnemiesPerLine;
+            for (var enemyId = Enemies.First().Id; enemyId < totalEnemies; enemyId++)
+            {
+                var enemy = Enemies[enemyId];
+
+                if (enemy.IsLive == false)
+                    continue;
+                else if (enemy.CanMoveToLeft())
+                {
+                    enemy.MoveToLeft();
+                    VerifyColisionWithAirShip(enemy.ElementScreen());
+                }
+                else if (enemy.GetDirection() == DirectionEnum.LEFT)
+                {
+                    foreach (var i in Enemies)
+                    {
+                        i.ChangeDirection(DirectionEnum.RIGHT);
+                        i.MoveToDown();
+                    }
+                    break;
+                }
+            }
+        }
+
+        private void MoveShotOfAirShip(Control control)
+        {
+            if (control is PictureBox && control.Tag == Variables.ShootNameAirShip)
+            {
+                control.Top -= Variables.AirShipShotSpeed;
+
+                if (control.Top < control.Height - 490)
+                {
+                    _controls.Remove(control);
+                }
+            }
+        }
+
+        private void MoveShotOfEnemy(Control control)
+        {
+            if (control is PictureBox && control.Tag == Variables.ShootNameEnemy)
+            {
+                //VerifyColisionWithAirShip(control);
+
+                control.Top += Variables.EnemyShotSpeed;
+
+                if (control.Top > 380)
+                {
+                    _controls.Remove(control);
+                    _totalShots--;
+                }
+            }
+        }
+
+        private void VerifyColisionShotsAirShipWithEnemies(Control control)
+        {
+            //VERIFICAR COLISÃO COM O TIRO...
+        }
+
+        private void VerifyColisionWithAirShip(Control control)
+        {
+            if (control.Bounds.IntersectsWith(_player.Bounds))
+            {
+                GamerOver();
+                //_controls.Remove(control);
+            }
+        }
+
+        public void NextLevelEnemy(int positionStartTop)
+        {
+            BuildEnemies(positionStartTop);
+        }
+
+        private void GamerOver()
+        {
+            _timer.Stop();
+            MessageBox.Show("You LOSE");
+        }
+
         public Gamer Clone()
         {
             var airShip = ScreenFactory.CloneElment<AirShip>(AirShip);
@@ -183,7 +331,7 @@ namespace SpaceInvaders.YuriSouza.Entities
                 {
                     shields.Add(ScreenFactory.CloneElment<Shield>(shield));
                 }
-                walls.Add(new Wall(shields));
+                walls.Add(new Wall(wall.Id, shields));
             });
             var enemies = new List<Enemy>();
             Enemies.ForEach(enemy =>
@@ -191,7 +339,7 @@ namespace SpaceInvaders.YuriSouza.Entities
                 enemies.Add(ScreenFactory.CloneElment<Enemy>(enemy));
             });
 
-            return new Gamer(_controls, airShip, walls, enemies);
+            return new Gamer(_controls, _player, _timer);
         }
     }
 }

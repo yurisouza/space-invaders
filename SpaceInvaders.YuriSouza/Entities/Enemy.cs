@@ -54,7 +54,7 @@ namespace SpaceInvaders.YuriSouza.Entities
         public void Shoot(ControlCollection controls)
         {
             CanShoot = false;
-            var shoot = ScreenFactory.NewShoot("invaderBullet", _controle);
+            var shoot = ScreenFactory.NewShoot(Variables.ShootNameEnemy, _controle);
             controls.Add(shoot);
             CanShoot = true;
         }

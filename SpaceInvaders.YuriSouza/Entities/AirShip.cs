@@ -16,7 +16,7 @@ namespace SpaceInvaders.YuriSouza.Entities
         public int Lives { get; set; }
         public bool CanShoot { get; set; }
 
-        private int _speed = Variables.SpeedAirShip;
+        private int _speed = Variables.AirShipSpeed;
 
         private AirShip()
         {
@@ -42,7 +42,7 @@ namespace SpaceInvaders.YuriSouza.Entities
         public void Shoot(ControlCollection controls)
         {
             CanShoot = false;
-            var shoot = ScreenFactory.NewShoot("bullet", _controle);
+            var shoot = ScreenFactory.NewShoot(Variables.ShootNameAirShip, _controle);
             controls.Add(shoot);
             CanShoot = true;
         }
