@@ -10,6 +10,7 @@ using static System.Windows.Forms.Control;
 
 namespace SpaceInvaders.YuriSouza.Entities
 {
+    [Serializable]
     public class AirShip : Element
     {
         public int Lives { get; set; }
@@ -44,6 +45,11 @@ namespace SpaceInvaders.YuriSouza.Entities
             var shoot = ScreenFactory.NewShoot("bullet", _controle);
             controls.Add(shoot);
             CanShoot = true;
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 }

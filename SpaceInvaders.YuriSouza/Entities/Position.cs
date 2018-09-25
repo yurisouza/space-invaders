@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace SpaceInvaders.YuriSouza.Entities
 {
+    [Serializable]
     public class Position
     {
         public int Left { get; set; }

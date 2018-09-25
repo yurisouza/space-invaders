@@ -45,7 +45,7 @@ namespace SpaceInvaders.YuriSouza.Utility
             return new Shield(new ElementControl(shield));
         }
 
-        public static Wall NewWall(int left, int top)
+        public static Wall NewWall(int id, int left, int top)
         {
             var shields = new List<Shield>();
 
@@ -58,7 +58,7 @@ namespace SpaceInvaders.YuriSouza.Utility
                 }
             }
 
-            return new Wall(shields);
+            return new Wall(id, shields);
         }
 
         public static Control NewShoot(string name, ElementControl elementControl)
@@ -68,12 +68,17 @@ namespace SpaceInvaders.YuriSouza.Utility
                 Image = Properties.Resources.bullet,
                 Size = new Size(Variables.ShootWidth, Variables.ShootHeight),
                 Tag = name,
-                Left = elementControl.ElementScreen.Left + elementControl.ElementScreen.Width / 2,
-                Top = elementControl.ElementScreen.Top + 20
+                Left = elementControl.ElementScreen().Left + elementControl.ElementScreen().Width / 2,
+                Top = elementControl.ElementScreen().Top + 20
             };
-
+            
             shoot.BringToFront();
             return shoot;
+        }
+
+        public static T CloneElment<T>(Element element)
+        {
+            return (T) element.Clone();
         }
     }
 }

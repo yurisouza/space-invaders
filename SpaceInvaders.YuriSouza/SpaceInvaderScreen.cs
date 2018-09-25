@@ -1,4 +1,5 @@
 ﻿using SpaceInvaders.YuriSouza.Entities;
+using SpaceInvaders.YuriSouza.Repository;
 using SpaceInvaders.YuriSouza.Utility;
 using System;
 using System.Collections.Generic;
@@ -13,68 +14,68 @@ using System.Windows.Forms;
 
 namespace SpaceInvaders.YuriSouza
 {
-    public partial class Form1 : Form
+    public partial class SpaceInvaderScreen : Form
     {
         private bool goLeft, goRight, isPressed, goLeftInvader, goRightInvader = true;
-        private int invaderSpeed = 7, score = 0, totalEnemies = 0, playerSpeed = 5, invaderToMove = 14, totalShoot = 0;
+        private int invaderSpeed = 7, totalEnemies = 0, playerSpeed = 5, invaderToMove = 14, totalShoot = 0;
         private Enemy[] enemies;
+        private Wall[] walls;
         private Random random;
         private AirShip airShip;
+        private Gamer gamer;
+        private IRepository repository;
 
-        public Form1()
+        public SpaceInvaderScreen()
         {
+            repository = new RepositoryMemory();
             random = new Random();
             InitializeComponent();
         }
 
-        private void InitializeInimigos(int baseStart)
-        {
-            enemies = new Enemy[Variables.TotalEnemies];
-            totalEnemies = 0;
+        //private void InitializeInimigos(int baseStart)
+        //{
+        //    enemies = new Enemy[Variables.TotalEnemies];
+        //    totalEnemies = 0;
 
-            var left = 78;
-            for (int coluna = 0; coluna < 7; coluna++)
-            {
-                left += 42;
-                var top = baseStart < 150 ? 150 : baseStart;
-                for (int line = 0; line < 4; line++)
-                {
-                    top -= 35;
+        //    var left = 78;
+        //    for (int coluna = 0; coluna < 7; coluna++)
+        //    {
+        //        left += 42;
+        //        var top = baseStart < 150 ? 150 : baseStart;
+        //        for (int line = 0; line < 4; line++)
+        //        {
+        //            top -= 35;
 
-                    var inimigo = ScreenFactory.NewEnemy(totalEnemies.ToString(), left, top);
-                    enemies[inimigo.Id] = inimigo;
+        //            var inimigo = ScreenFactory.NewEnemy(totalEnemies.ToString(), left, top);
+        //            enemies[inimigo.Id] = inimigo;
 
-                    this.Controls.Add(inimigo.ElementScreen());
-                    totalEnemies++;
-                }
-            }
-        }
+        //            this.Controls.Add(inimigo.ElementScreen());
+        //            totalEnemies++;
+        //        }
+        //    }
+        //}
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            InitializeInimigos(150);
-            MakeWalls();
-            airShip = new AirShip(new ElementControl(player, DirectionEnum.STOP));
+            //MakeWalls();
+            //InitializeInimigos(150);
+            //airShip = new AirShip(new ElementControl(player, DirectionEnum.STOP));
+            gamer = new Gamer(Controls, player, timer1);
         }
 
         private void keyisdown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Left)
-                airShip.ChangeDirection(DirectionEnum.LEFT);
-
-            if (e.KeyCode == Keys.Right)
-                airShip.ChangeDirection(DirectionEnum.RIGHT);
-
-            if (e.KeyCode == Keys.Space && airShip.CanShoot)
-            {
-                airShip.Shoot(Controls);
-            }
+            if (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right)
+                gamer.EventHandler(EventActionEnum.DOWN, sender, e);
+            else if (e.KeyCode == Keys.Space)
+                gamer.EventHandler(EventActionEnum.SPACE, sender, e);
+            else
+                gamer.EventHandler(EventActionEnum.RESTART, sender, e);
         }
 
         private void keyisup(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right)
-                airShip.ChangeDirection(DirectionEnum.STOP);
+            gamer.EventHandler(EventActionEnum.UP, sender, e);
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -104,6 +105,12 @@ namespace SpaceInvaders.YuriSouza
                     }
                     break;
                 }
+            }
+
+            //MOVER INIMIGOS PARA ESQUERDA
+            for (var inimigoId = enemies.First().Id; inimigoId < Variables.TotalEnemies; inimigoId++)
+            {
+                var inimigo = enemies[inimigoId];
 
                 if (inimigo.IsLive == false)
                     continue;
@@ -120,26 +127,7 @@ namespace SpaceInvaders.YuriSouza
                 }
             }
 
-            ////MOVER INIMIGOS PARA ESQUERDA
-            //for (var inimigoId = enemies.First().Id; inimigoId < Variables.TotalEnemies; inimigoId++)
-            //{
-            //    var inimigo = enemies[inimigoId];
-
-            //    if (inimigo.IsLive == false)
-            //        continue;
-            //    else if (inimigo.CanMoveToLeft())
-            //        inimigo.MoveToLeft();
-            //    else if (inimigo.GetDirection() == DirectionEnum.LEFT)
-            //    {
-            //        foreach (var i in enemies)
-            //        {
-            //            i.ChangeDirection(DirectionEnum.RIGHT);
-            //            i.MoveToDown();
-            //        }
-            //        break;
-            //    }
-            //}
-
+            //TIRO INIMIGOS
             var enemiesLives = enemies.Where(enemy => enemy.IsLive == true);
             foreach (var enemy in enemiesLives)
             {
@@ -172,7 +160,7 @@ namespace SpaceInvaders.YuriSouza
                     {
                         Controls.Remove(control);
                         gameOver();
-                        MessageBox.Show("You LOSER");
+                        MessageBox.Show("You LOSE");
                     }
 
                     control.Top += 3;
@@ -206,7 +194,7 @@ namespace SpaceInvaders.YuriSouza
                         {
                             if (control.Bounds.IntersectsWith(controlInternal.Bounds))
                             {
-                                score++;
+                                gamer.Score++;
                                 Controls.Remove(control);
                                 Controls.Remove(controlInternal);
 
@@ -226,6 +214,8 @@ namespace SpaceInvaders.YuriSouza
                                         i.IncreaseSpeed();
                                     }
                                 }
+
+                                repository.Insert(gamer);
                             }
                         }
 
@@ -252,6 +242,8 @@ namespace SpaceInvaders.YuriSouza
                         {
                             if (control.Bounds.IntersectsWith(controlInternal.Bounds))
                             {
+                                var ids = control.AccessibleName.Split('/');
+                                walls[Convert.ToInt32(ids[0])].Shield(ids[1]).IsLive = false;
                                 Controls.Remove(control);
                                 Controls.Remove(controlInternal);
                             }
@@ -259,7 +251,7 @@ namespace SpaceInvaders.YuriSouza
                     }
                 }
 
-                label1.Text = $"Score: {score}";
+                label1.Text = $"Score: {gamer.Score}";
 
                 //if (score > totalEnemies - 1)
                 //{
@@ -271,19 +263,25 @@ namespace SpaceInvaders.YuriSouza
 
 
 
-        private void MakeWalls()
-        {
-            var intervalBetweenWalls = 0;
-            for (int wallId = 1; wallId <= Variables.TotalWalls; wallId++)
-            {
-                var wall = ScreenFactory.NewWall((39 * wallId) + intervalBetweenWalls, 288);
-                foreach(var shield in wall.Shields)
-                {
-                    Controls.Add(shield.ElementScreen());
-                }
-                intervalBetweenWalls += 70;
-            }
-        }
+        //private void MakeWalls()
+        //{
+        //    walls = new Wall[Variables.TotalWalls];
+        //    var shieldId = 0;
+        //    var intervalBetweenWalls = 0;
+        //    for (int wallId = 0; wallId < Variables.TotalWalls; wallId++)
+        //    {
+        //        var wall = ScreenFactory.NewWall((39 * (wallId + 1)) + intervalBetweenWalls, 288);
+        //        walls[wallId] = wall;
+        //        foreach(var shield in wall.Shields)
+        //        {
+        //            shield.Id = shieldId++;
+        //            shield.WallId = wallId;
+        //            shield.ElementScreen().AccessibleName = $"{wallId}/{shield.Id}";
+        //            Controls.Add(shield.ElementScreen());
+        //        }
+        //        intervalBetweenWalls += 70;
+        //    }
+        //}
 
 
         private void gameOver()

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,9 +8,17 @@ using System.Windows.Forms;
 
 namespace SpaceInvaders.YuriSouza.Entities
 {
-    public abstract class Element
+    [Serializable]
+    public abstract class Element : ICloneable
     {
         protected ElementControl _controle { get; set; }
+
+        public Element(){}
+
+        public Element(ElementControl controle)
+        {
+            _controle = controle;
+        }
 
         public void ChangeDirection(DirectionEnum direction)
         {
@@ -23,7 +32,7 @@ namespace SpaceInvaders.YuriSouza.Entities
 
         public Control ElementScreen()
         {
-            return _controle.ElementScreen;
+            return _controle.ElementScreen();
         }
 
         public bool CanMoveToLeft()
@@ -39,5 +48,12 @@ namespace SpaceInvaders.YuriSouza.Entities
         public abstract void MoveToLeft();
 
         public abstract void MoveToRight();
+
+        public object Clone()
+        {
+            var element = (Element) MemberwiseClone();
+            element._controle = new ElementControl(element.ElementScreen());
+            return element;
+        }
     }
 }

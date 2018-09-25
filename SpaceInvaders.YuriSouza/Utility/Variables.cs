@@ -8,8 +8,11 @@ namespace SpaceInvaders.YuriSouza.Utility
 {
     public static class Variables
     {
-        public static int TotalEnemies = 28;
-        public static int SpeedEnemy = 1;
+        //public static int TotalEnemies = 28;
+        public static int EnemiesPerLine = 7;
+        public static int EnemiesPerCollumn = 4;
+        public static int EnemyPositionStartLeft = 78;
+        public static int EnemySpeed = 1;
         public static int EnemyWidth = 24;
         public static int EnemyHeight = 24;
         public static string EnemyName = "invader";
@@ -27,5 +30,7 @@ namespace SpaceInvaders.YuriSouza.Utility
 
         public static int ShootWidth = 2;
         public static int ShootHeight = 13;
+
+        public static int MinPositionTop = 150;
     }
 }

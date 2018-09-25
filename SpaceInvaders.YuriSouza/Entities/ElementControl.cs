@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,21 +8,29 @@ using System.Windows.Forms;
 
 namespace SpaceInvaders.YuriSouza.Entities
 {
+    [Serializable]
     public class ElementControl
     {
-        public Control ElementScreen { get; set; }
+        private Control _elementScreen { get; set; }
+
         private Position _position;
 
         public ElementControl(Control elementSreen)
         {
-            ElementScreen = elementSreen;
-            _position = new Position(ElementScreen.Left, ElementScreen.Top);
+            _elementScreen = elementSreen;
+            _position = new Position(_elementScreen.Left, _elementScreen.Top);
         }
 
         public ElementControl(Control elementSreen, DirectionEnum directionEnum)
         {
-            ElementScreen = elementSreen;
-            _position = new Position(ElementScreen.Left, ElementScreen.Top, directionEnum);
+            _elementScreen = elementSreen;
+            _position = new Position(_elementScreen.Left, _elementScreen.Top, directionEnum);
+        }
+
+        public Control ElementScreen()
+        {
+            UpdateElementInScreen();
+            return _elementScreen;
         }
 
         public bool CanMoveToLeft()
@@ -47,25 +56,25 @@ namespace SpaceInvaders.YuriSouza.Entities
         public void MoveToLeft(int speed)
         {
             _position.Left -= speed;
-            Move(_position);
+            UpdateElementInScreen();
         }
 
         public void MoveToRight(int speed)
         {
             _position.Left += speed;
-            Move(_position);
+            UpdateElementInScreen();
         }
 
         public void MoveToDown(int speed)
         {
             _position.Top += speed;
-            Move(_position);
+            UpdateElementInScreen();
         }
 
-        private void Move(Position position)
+        private void UpdateElementInScreen()
         {
-            ElementScreen.Left = position.Left;
-            ElementScreen.Top = position.Top;
+            _elementScreen.Left = _position.Left;
+            _elementScreen.Top = _position.Top;
         }
     }
 }

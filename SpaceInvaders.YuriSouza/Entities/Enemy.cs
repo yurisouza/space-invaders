@@ -4,24 +4,26 @@ using static System.Windows.Forms.Control;
 
 namespace SpaceInvaders.YuriSouza.Entities
 {
+    [Serializable]
     public class Enemy : Element
     {
         public int Id { get; set; }
         public bool CanShoot { get; set; }
         public bool IsLive { get; set; }
 
-        private int _speed = Variables.SpeedEnemy;
+        private int _speed = Variables.EnemySpeed;
          
-        public Enemy()
+        //public Enemy()
+        //{
+        //    CanShoot = true;
+        //    IsLive = true;
+        //}
+
+        public Enemy(ElementControl controle) : base(controle)
         {
             CanShoot = true;
             IsLive = true;
-        }
-
-        public Enemy(ElementControl controle) : this()
-        {
-            Id = Convert.ToInt32(controle.ElementScreen.AccessibleName);
-            _controle = controle;
+            Id = Convert.ToInt32(_controle.ElementScreen().AccessibleName);
         }
 
         public void IncreaseSpeed()
@@ -31,7 +33,7 @@ namespace SpaceInvaders.YuriSouza.Entities
 
         private void RestartSpeed()
         {
-            _speed = Variables.SpeedEnemy;
+            _speed = Variables.EnemySpeed;
         }
 
         public override void MoveToLeft()

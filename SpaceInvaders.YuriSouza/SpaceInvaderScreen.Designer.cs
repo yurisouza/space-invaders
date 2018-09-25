@@ -1,6 +1,6 @@
 ﻿namespace SpaceInvaders.YuriSouza
 {
-    partial class Form1
+    partial class SpaceInvaderScreen
     {
         /// <summary>
         /// Variável de designer necessária.
@@ -29,22 +29,14 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.label1 = new System.Windows.Forms.Label();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SpaceInvaderScreen));
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.player = new System.Windows.Forms.PictureBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.player)).BeginInit();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.SystemColors.Control;
-            this.label1.Location = new System.Drawing.Point(12, 419);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(106, 25);
-            this.label1.TabIndex = 13;
-            this.label1.Text = "Score: 00";
             // 
             // timer1
             // 
@@ -55,38 +47,48 @@
             // player
             // 
             this.player.Image = global::SpaceInvaders.YuriSouza.Properties.Resources.tumblr_inline_n14lnhaxlK1qajupv;
-            this.player.Location = new System.Drawing.Point(272, 402);
+            resources.ApplyResources(this.player, "player");
             this.player.Name = "player";
-            this.player.Size = new System.Drawing.Size(50, 50);
-            this.player.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.player.TabIndex = 0;
             this.player.TabStop = false;
             this.player.Tag = "";
             // 
-            // Form1
+            // groupBox1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.groupBox1.Controls.Add(this.label1);
+            resources.ApplyResources(this.groupBox1, "groupBox1");
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.TabStop = false;
+            // 
+            // label1
+            // 
+            resources.ApplyResources(this.label1, "label1");
+            this.label1.ForeColor = System.Drawing.SystemColors.Control;
+            this.label1.Name = "label1";
+            // 
+            // SpaceInvader
+            // 
+            resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Desktop;
-            this.ClientSize = new System.Drawing.Size(682, 453);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.player);
-            this.Name = "Form1";
-            this.Text = "Form1";
+            this.Name = "SpaceInvader";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.keyisdown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.keyisup);
             ((System.ComponentModel.ISupportInitialize)(this.player)).EndInit();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
 
         private System.Windows.Forms.PictureBox player;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Label label1;
     }
 }
 
