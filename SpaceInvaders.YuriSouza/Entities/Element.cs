@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SpaceInvaders.YuriSouza.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,7 +53,7 @@ namespace SpaceInvaders.YuriSouza.Entities
         public object Clone()
         {
             var element = (Element) MemberwiseClone();
-            element._controle = new ElementControl(element.ElementScreen());
+            element._controle = new ElementControl(new ControlImplementation(element.ElementScreen()));
             return element;
         }
     }

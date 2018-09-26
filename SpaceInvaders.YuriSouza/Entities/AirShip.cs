@@ -42,7 +42,7 @@ namespace SpaceInvaders.YuriSouza.Entities
         public void Shoot(ControlCollection controls)
         {
             CanShoot = false;
-            var shoot = ScreenFactory.NewShoot(Variables.ShootNameAirShip, _controle);
+            var shoot = ScreenFactory.NewShoot(Variables.ShotOfAirship, _controle);
             controls.Add(shoot);
             CanShoot = true;
         }

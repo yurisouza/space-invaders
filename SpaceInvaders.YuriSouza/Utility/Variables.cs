@@ -15,7 +15,7 @@ namespace SpaceInvaders.YuriSouza.Utility
         public static int EnemyShotSpeed = 3;
         public static int EnemyWidth = 24;
         public static int EnemyHeight = 24;
-        public static string EnemyName = "invader";
+        public static string EnemyName = "enemy";
 
         public static int AirShipSpeed = 5;
         public static int AirShipShotSpeed = 6;
@@ -28,11 +28,15 @@ namespace SpaceInvaders.YuriSouza.Utility
         public static int ShieldWidth = 6;
         public static int ShieldHeight = 8;
 
-        public static string ShootNameAirShip = "ShotAirShip";
-        public static string ShootNameEnemy = "ShotEnemy";
+        public static string ShotOfAirship = "ShotAirShip";
+        public static string ShotOfEnemy = "ShotEnemy";
         public static int ShootWidth = 2;
         public static int ShootHeight = 13;
         public static int ShotsEnemiesInScreen = 4;
+
+        public static string ListScoresName = "listPanel";
+        public static string ScoreName = "scorePanel";
+        public static string BorderName = "borderPanel";
 
         public static int MinPositionTop = 150;
     }

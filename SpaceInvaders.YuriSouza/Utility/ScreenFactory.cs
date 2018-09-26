@@ -26,7 +26,7 @@ namespace SpaceInvaders.YuriSouza.Utility
 
             inimigoScreen.BringToFront();
 
-            return new Enemy(new ElementControl(inimigoScreen));
+            return new Enemy(new ElementControl(new ControlImplementation(inimigoScreen)));
         }
 
         public static Shield NewShield(int left, int top)
@@ -42,7 +42,7 @@ namespace SpaceInvaders.YuriSouza.Utility
 
             shield.BringToFront();
 
-            return new Shield(new ElementControl(shield));
+            return new Shield(new ElementControl(new ControlImplementation(shield)));
         }
 
         public static Wall NewWall(int id, int left, int top)

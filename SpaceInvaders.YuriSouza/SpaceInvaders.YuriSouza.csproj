@@ -68,6 +68,8 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utility\ControlImplementation.cs" />
+    <Compile Include="Utility\IControl.cs" />
     <Compile Include="Utility\ScreenFactory.cs" />
     <Compile Include="Utility\Variables.cs" />
     <EmbeddedResource Include="SpaceInvaderScreen.resx">

@@ -1,4 +1,6 @@
-﻿using SpaceInvaders.YuriSouza.Utility;
+﻿
+using SpaceInvaders.YuriSouza.Repository;
+using SpaceInvaders.YuriSouza.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +15,11 @@ namespace SpaceInvaders.YuriSouza.Entities
     public class Gamer
     {
         private Control _player;
+        private ListView _listScores;
         private Timer _timer;
         private ControlCollection _controls;
         private Random _random;
+        private IRepository _repository;
         private int _totalShots = 0;
 
         public int Score { get; set; }
@@ -23,19 +27,37 @@ namespace SpaceInvaders.YuriSouza.Entities
         public List<Wall> Walls { get; set; }
         public List<Enemy> Enemies { get; set; }
 
-        public Gamer(ControlCollection controls, Control player, Timer timer)
+        public Gamer()
+        {
+            _repository = new RepositoryMemory();
+            _random = new Random();
+        }
+
+        public Gamer(ControlCollection controls, Control player, Timer timer, ListView listScores)
         {
             _controls = controls;
             _player = player;
             _timer = timer;
+            _listScores = listScores;
+            BuildListScores();
+            _repository = new RepositoryMemory();
             _random = new Random();
-            Walls = new List<Wall>(Variables.TotalWalls);
-            Enemies = new List<Enemy>(Variables.EnemiesPerLine * Variables.EnemiesPerCollumn);
-            LoadGamer();
+
         }
 
-        private void LoadGamer()
+        private void BuildListScores()
         {
+            _listScores.Columns.Add("Posição", 50);
+            _listScores.Columns.Add("Pontuação", 150);
+            _listScores.View = View.Details;
+            _listScores.GridLines = true;
+            _listScores.FullRowSelect = true;
+        }
+
+        public void LoadGamer()
+        {
+            _listScores.Hide();
+            ClearScreen();
             BuildAirShip();
             BuildWalls();
             BuildEnemies();
@@ -43,6 +65,7 @@ namespace SpaceInvaders.YuriSouza.Entities
 
         private void BuildEnemies(int positionStartTop = 150)
         {
+            Enemies = new List<Enemy>(Variables.EnemiesPerLine * Variables.EnemiesPerCollumn);
             var enemyId = 0;
             var positionStartLeft = Variables.EnemyPositionStartLeft;
 
@@ -69,6 +92,7 @@ namespace SpaceInvaders.YuriSouza.Entities
 
         private void BuildWalls()
         {
+            Walls = new List<Wall>(Variables.TotalWalls);
             var shieldId = 0;
             var intervalBetweenWalls = 0;
 
@@ -92,8 +116,7 @@ namespace SpaceInvaders.YuriSouza.Entities
 
         private void BuildAirShip()
         {
-            //PERCORRER O _controls e pegar o primeiro (player)
-            AirShip = new AirShip(new ElementControl(_player, DirectionEnum.STOP));
+            AirShip = new AirShip(new ElementControl(new ControlImplementation(_player), DirectionEnum.STOP));
         }
 
         public void EventHandler(EventActionEnum eventAction, object sender, KeyEventArgs e)
@@ -102,10 +125,39 @@ namespace SpaceInvaders.YuriSouza.Entities
                 EventDown(sender, e);
             else if (eventAction == EventActionEnum.UP)
                 EventUp(sender, e);
+            else if (eventAction == EventActionEnum.SCORE)
+                EventScore(sender, e);
             else if (eventAction == EventActionEnum.SPACE)
                 EventSpace(sender, e);
             else
                 EventRestart(sender, e);
+        }
+
+        private void EventScore(object sender, KeyEventArgs e)
+        {
+            if (_listScores.Visible)
+            {
+                _listScores.Hide();
+                _listScores.Items.Clear();
+            }
+            else
+            {
+                var scores = _repository.Get();
+                if (scores != null)
+                {
+
+                    scores.ConvertAll<string>(x => x.ToString()).OrderByDescending(i => i).ToList().ForEach(item =>
+                    {
+                        string[] scoreView = new string[2];
+                        scoreView[0] = (scores.IndexOf(Convert.ToInt32(item)) + 1).ToString();
+                        scoreView[1] = item;
+                        var score = new ListViewItem(scoreView);
+                        _listScores.Items.Add(score);
+                    });
+
+                    _listScores.Show();
+                }
+            }
         }
 
         private void EventDown(object sender, KeyEventArgs e)
@@ -131,41 +183,68 @@ namespace SpaceInvaders.YuriSouza.Entities
 
         private void EventRestart(object sender, KeyEventArgs e)
         {
-            //_timer.Stop();
-            ////Restart(repository.Get());
-            //_timer.Interval = 500;
-            //_timer.Start();
+            if (Keys.R == e.KeyCode)
+                _timer.Stop();
+
+            if (Keys.D1 == e.KeyCode)
+            {
+                Restart(_repository.Get(1));
+                _timer.Start();
+            }
+            else if (Keys.D2 == e.KeyCode)
+            {
+                Restart(_repository.Get(2));
+                _timer.Start();
+            }
+            else if (Keys.D3 == e.KeyCode)
+            {
+                Restart(_repository.Get(3));
+                _timer.Start();
+            }
+            else if (Keys.D4 == e.KeyCode)
+            {
+                Restart(_repository.Get(4));
+                _timer.Start();
+            }
+            else if (Keys.D5 == e.KeyCode)
+            {
+                Restart(_repository.Get(5));
+                _timer.Start();
+            }
         }
 
         public void Restart(Gamer newGamer)
         {
-            AirShip = newGamer.AirShip;
-            Walls = newGamer.Walls;
-            Enemies = newGamer.Enemies;
-            Score = newGamer.Score;
-
-            _controls.Clear();
-
-            _controls.Add(AirShip.ElementScreen());
-
-            Walls.ForEach(wall =>
+            if (newGamer != null)
             {
-                foreach (var shield in wall.Shields)
+                AirShip = newGamer.AirShip;
+                Walls = newGamer.Walls;
+                Enemies = newGamer.Enemies;
+                Score = newGamer.Score;
+
+                ClearScreen(true);
+
+                _controls.Add(AirShip.ElementScreen());
+
+                Walls.ForEach(wall =>
                 {
-                    if (shield.IsLive == true)
+                    foreach (var shield in wall.Shields)
                     {
-                        _controls.Add(shield.ElementScreen());
+                        if (shield.IsLive == true)
+                        {
+                            _controls.Add(shield.ElementScreen());
+                        }
                     }
-                }
-            });
+                });
 
-            Enemies.ForEach(enemy =>
-            {
-                if (enemy.IsLive == true)
+                Enemies.ForEach(enemy =>
                 {
-                    _controls.Add(enemy.ElementScreen());
-                };
-            });
+                    if (enemy.IsLive == true)
+                    {
+                        _controls.Add(enemy.ElementScreen());
+                    };
+                });
+            }
         }
 
         public void GamerManager()
@@ -174,11 +253,12 @@ namespace SpaceInvaders.YuriSouza.Entities
             MoveEnemies();
             EnemiesShots();
 
-            foreach(Control control in _controls)
+            foreach (Control control in _controls)
             {
                 MoveShotOfAirShip(control);
                 MoveShotOfEnemy(control);
-                VerifyColisionShotsAirShipWithEnemies(control);
+                VerifyColisions(control);
+                UpdateScore(control);
             }
         }
 
@@ -228,7 +308,7 @@ namespace SpaceInvaders.YuriSouza.Entities
             foreach (var enemy in enemiesLives)
             {
                 var totalEnemies = Variables.EnemiesPerLine * Variables.EnemiesPerCollumn;
-                var indexMultiply = (int) Math.Floor(Convert.ToDecimal((totalEnemies - enemiesLives.Count()) / 2));
+                var indexMultiply = (int)Math.Floor(Convert.ToDecimal((totalEnemies - enemiesLives.Count()) / 2));
                 var probability = _random.Next(0, 28 * indexMultiply) >= _random.Next(1, 2800);
                 if (enemy.CanShoot && probability && _totalShots < Variables.ShotsEnemiesInScreen)
                 {
@@ -266,7 +346,7 @@ namespace SpaceInvaders.YuriSouza.Entities
 
         private void MoveShotOfAirShip(Control control)
         {
-            if (control is PictureBox && control.Tag == Variables.ShootNameAirShip)
+            if (control is PictureBox && control.Tag == Variables.ShotOfAirship)
             {
                 control.Top -= Variables.AirShipShotSpeed;
 
@@ -279,7 +359,7 @@ namespace SpaceInvaders.YuriSouza.Entities
 
         private void MoveShotOfEnemy(Control control)
         {
-            if (control is PictureBox && control.Tag == Variables.ShootNameEnemy)
+            if (control is PictureBox && control.Tag == Variables.ShotOfEnemy)
             {
                 //VerifyColisionWithAirShip(control);
 
@@ -293,9 +373,56 @@ namespace SpaceInvaders.YuriSouza.Entities
             }
         }
 
-        private void VerifyColisionShotsAirShipWithEnemies(Control control)
+        private void VerifyColisions(Control control)
         {
-            //VERIFICAR COLISÃO COM O TIRO...
+            VerifyColisionWithEnemies(control);
+            VerifyColisionWithShields(control);
+            VerifyColisionBetweenShots(control);
+        }
+
+        private void VerifyColisionWithShields(Control shot)
+        {
+            Walls.ForEach(wall =>
+            {
+                foreach (var shield in wall.Shields)
+                {
+                    if ((shot.Tag == Variables.ShotOfEnemy || shot.Tag == Variables.ShotOfAirship) && shield.IsLive && shot.Bounds.IntersectsWith(shield.ElementScreen().Bounds))
+                    {
+                        _controls.Remove(shot);
+                        _controls.Remove(shield.ElementScreen());
+                        shield.IsLive = false;
+
+                        if (shot.Tag == Variables.ShotOfEnemy)
+                            _totalShots--;
+                    }
+                }
+            });
+        }
+
+        private void VerifyColisionWithEnemies(Control shotOfAirShip)
+        {
+            foreach (var enemy in Enemies)
+            {
+                if (shotOfAirShip.Tag == Variables.ShotOfAirship && enemy.IsLive && shotOfAirShip.Bounds.IntersectsWith(enemy.ElementScreen().Bounds))
+                {
+                    _repository.Insert(this);
+
+                    Score++;
+                    _controls.Remove(shotOfAirShip);
+                    _controls.Remove(enemy.ElementScreen());
+                    enemy.IsLive = false;
+
+                    var survivors = Enemies.Count(e => e.IsLive);
+                    if (survivors == 0)
+                        NextLevelEnemy(enemy.ElementScreen().Top + 45);
+                    else if (survivors % 9 == 0)
+                        Enemies.ForEach(e => e.IncreaseSpeed());
+                }
+
+                if (enemy.IsLive)
+                    VerifyColisionWithAirShip(enemy.ElementScreen());
+
+            };
         }
 
         private void VerifyColisionWithAirShip(Control control)
@@ -303,18 +430,74 @@ namespace SpaceInvaders.YuriSouza.Entities
             if (control.Bounds.IntersectsWith(_player.Bounds))
             {
                 GamerOver();
-                //_controls.Remove(control);
             }
         }
 
-        public void NextLevelEnemy(int positionStartTop)
+        private void VerifyColisionBetweenShots(Control shotOfEnemy)
+        {
+            if (shotOfEnemy.Tag == Variables.ShotOfEnemy)
+            {
+                VerifyColisionWithAirShip(shotOfEnemy);
+
+                foreach (Control shotAirShip in _controls)
+                {
+                    if (shotAirShip.Tag == Variables.ShotOfAirship && shotOfEnemy.Bounds.IntersectsWith(shotAirShip.Bounds))
+                    {
+                        _controls.Remove(shotOfEnemy);
+                        _controls.Remove(shotAirShip);
+                    }
+                }
+            }
+        }
+
+        private void NextLevelEnemy(int positionStartTop)
         {
             BuildEnemies(positionStartTop);
+        }
+
+        public void UpdateScore(Control control)
+        {
+            control.Text = $"Score: {Score}";
+        }
+
+        private void ClearScreen(bool removeAirShip = false)
+        {
+            if (Enemies != null)
+            {
+                Enemies.ForEach(enemy =>
+                {
+                    _controls.Remove(enemy.ElementScreen());
+                });
+            }
+
+            if (Walls != null)
+            {
+                Walls.ForEach(wall =>
+                {
+                    foreach (var shield in wall.Shields)
+                    {
+                        _controls.Remove(shield.ElementScreen());
+                    }
+                });
+            }
+
+
+            foreach (Control control in _controls)
+            {
+                if (control.Tag == Variables.BorderName || control.Tag == Variables.ScoreName || control.Tag == Variables.ListScoresName)
+                    continue;
+
+                if (control == _player && removeAirShip == false)
+                    continue;
+
+                _controls.Remove(control);
+            }
         }
 
         private void GamerOver()
         {
             _timer.Stop();
+            _repository.Insert(Score);
             MessageBox.Show("You LOSE");
         }
 
@@ -339,7 +522,7 @@ namespace SpaceInvaders.YuriSouza.Entities
                 enemies.Add(ScreenFactory.CloneElment<Enemy>(enemy));
             });
 
-            return new Gamer(_controls, _player, _timer);
+            return new Gamer(_controls, _player, _timer, _listScores) { AirShip = airShip, Walls = walls, Enemies = enemies, Score = Score };
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SpaceInvaders.YuriSouza.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,15 +16,15 @@ namespace SpaceInvaders.YuriSouza.Entities
 
         private Position _position;
 
-        public ElementControl(Control elementSreen)
+        public ElementControl(IControl elementSreen)
         {
-            _elementScreen = elementSreen;
+            _elementScreen = (Control) elementSreen.GetControl();
             _position = new Position(_elementScreen.Left, _elementScreen.Top);
         }
 
-        public ElementControl(Control elementSreen, DirectionEnum directionEnum)
+        public ElementControl(IControl elementSreen, DirectionEnum directionEnum)
         {
-            _elementScreen = elementSreen;
+            _elementScreen = (Control) elementSreen.GetControl();
             _position = new Position(_elementScreen.Left, _elementScreen.Top, directionEnum);
         }
 

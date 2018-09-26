@@ -14,23 +14,57 @@ namespace SpaceInvaders.YuriSouza.Repository
 {
     public class RepositoryMemory : IRepository
     {
-        public List<Gamer> Gamers { get; set; }
+        private Dictionary<int, Gamer> _gamers;
+        private List<int> _scores;
 
         public RepositoryMemory()
         {
-            Gamers = new List<Gamer>();
+            _scores = new List<int>();
+            _gamers = new Dictionary<int, Gamer>();
         }
 
-        public Gamer Get()
+        public Gamer Get(int position)
         {
-            return Gamers.LastOrDefault();
+            for (int i = 1; i <= position; i++)
+            {
+                Gamer gamer;
+                _gamers.TryGetValue(position - i, out gamer);
+
+                if (gamer != null)
+                    return gamer;
+            }
+
+            return null;
         }
 
         public void Insert(Gamer gamer)
         {
-            Gamers.Add(gamer.Clone());
+            var gamersTemp = new Dictionary<int, Gamer>();
+
+            gamersTemp.Add(0, gamer.Clone());
+
+            for (int i = 0; i < 4; i++)
+            {
+                Gamer gamerTemp;
+                _gamers.TryGetValue(i, out gamerTemp);
+
+                if (gamerTemp == null)
+                    break;
+                else
+                    gamersTemp.Add(i+1, gamerTemp);
+            }
+
+            _gamers = gamersTemp;
         }
 
-        
+        public void Insert(int score)
+        {
+            _scores.Add(score);
+        }
+
+        public List<int> Get()
+        {
+            return _scores.OrderByDescending(i => i).Take(10).ToList();
+        }
     }
 }

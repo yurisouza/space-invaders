@@ -10,6 +10,8 @@ namespace SpaceInvaders.YuriSouza.Repository
     public interface IRepository
     {
         void Insert(Gamer game);
-        Gamer Get();
+        Gamer Get(int position);
+        void Insert(int score);
+        List<int> Get();
     }
 }

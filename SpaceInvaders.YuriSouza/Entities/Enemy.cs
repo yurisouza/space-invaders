@@ -13,12 +13,6 @@ namespace SpaceInvaders.YuriSouza.Entities
 
         private int _speed = Variables.EnemySpeed;
          
-        //public Enemy()
-        //{
-        //    CanShoot = true;
-        //    IsLive = true;
-        //}
-
         public Enemy(ElementControl controle) : base(controle)
         {
             CanShoot = true;
@@ -54,7 +48,7 @@ namespace SpaceInvaders.YuriSouza.Entities
         public void Shoot(ControlCollection controls)
         {
             CanShoot = false;
-            var shoot = ScreenFactory.NewShoot(Variables.ShootNameEnemy, _controle);
+            var shoot = ScreenFactory.NewShoot(Variables.ShotOfEnemy, _controle);
             controls.Add(shoot);
             CanShoot = true;
         }

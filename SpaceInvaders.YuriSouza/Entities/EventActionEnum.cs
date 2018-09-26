@@ -11,6 +11,7 @@ namespace SpaceInvaders.YuriSouza.Entities
         DOWN = 0,
         UP = 1,
         SPACE = 2,
-        RESTART = 3
+        RESTART = 3,
+        SCORE = 4
     }
 }
